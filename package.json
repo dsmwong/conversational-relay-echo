@@ -1,0 +1,21 @@
+{
+  "name": "conversation-relay-echo",
+  "version": "1.0.0",
+  "description": "WebSocket server to test Conversation Relay messages. It just echos messages back to the client.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "Des Hartman",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.21.1",
+    "express-ws": "^5.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
