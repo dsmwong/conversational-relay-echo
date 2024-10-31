@@ -1,4 +1,4 @@
-# Simple Conversation Relay
+# Simple Conversation Relay Echo test
 
 This project consists of a simple WebSocket server for handling conversation relay requests. It does not use any LLM or backend components and is intended for testing purposes only. It simply logs and echo's messages received for the various stages of Conversation Relay.
 
