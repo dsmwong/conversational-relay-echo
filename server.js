@@ -38,14 +38,14 @@ app.ws('/conversation-relay', async (ws) => {
                     break;
                 case 'interrupt':
                     // Handle interrupt message
-                    console.info(`[Conversation Relay] Interrupt ...... : ${JSON.stringify(message, null, 4)}`);
+                    console.info(`[Conversation Relay] Interrupt ...... : ${message.utteranceUntilInterrupt}`);
                     break;
                 case 'dtmf':
                     // Handle DTMF digits. We are just logging them out for now.
-                    console.debug(`[Conversation Relay] DTMF: ${message.digits.digit}`);
+                    console.debug(`[Conversation Relay] DTMF: ${message.digit}`);
                     echoResponse = {
                         "type": "text",
-                        "token": `Digit received is: ${message.digits.digit}`,
+                        "token": `Digit received is: ${message.digit}`,
                         "last": true
                     }
                     // Send the response back to the WebSocket client

@@ -7,12 +7,6 @@ This project consists of a simple WebSocket server for handling conversation rel
 - Node.js v18
 - pnpm
 - ngrok
-## Project Structure
-
-```
-.
-├── server/          # WebSocket server for conversation relay
-```
 
 ## Server Component
 
@@ -26,14 +20,14 @@ The server handles WebSocket connections and manages Conversation Relay function
 pnpm install
 ```
 
-2. Start the development server:
+2. Start the development server in a terminal window:
 ```bash
 pnpm dev
 ```
 
-4. Expose the server using ngrok:
+4. Expose the server using ngrok in a second terminal window:
 ```bash
-ngrok http --domain server-xxxx.ngrok.dev 4000
+ngrok http --domain YOUR_NGROK_DOMAIN.ngrok.dev 4000
 ```
 
 ## Twilio Configuration
@@ -45,7 +39,7 @@ ngrok http --domain server-xxxx.ngrok.dev 4000
 ```xml
 <Response>
    <Connect>
-      <ConversationRelay url="wss://server-xxxx.ngrok.dev/conversation-relay" voice="en-AU-Neural2-A" dtmfDetection="true" interruptByDtmf="true" debug="true"/>
+      <ConversationRelay url="wss://YOUR_NGROK_DOMAIN.ngrok.dev/conversation-relay" voice="en-AU-Neural2-A" dtmfDetection="true" interruptByDtmf="true" debug="true"/>
    </Connect>
 </Response>
 ```
