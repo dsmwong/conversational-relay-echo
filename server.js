@@ -21,9 +21,10 @@ app.ws('/conversation-relay', async (ws) => {
         try {
             const message = JSON.parse(data);
             console.log(`[Conversation Relay] Message received. This server will echo what you say. You can also interrupt the interrupting a long echo message. DTMF tones are also echod back`);
+            console.log(`[Conversation Relay] JSON >>>>>>: ${JSON.stringify(message, null, 2)}`);
             switch (message.type) {
                 case 'info':
-                    console.debug(`[Conversation Relay] info: ${JSON.stringify(message, null, 4)}`)
+                    console.debug(`[Conversation Relay] info: ${JSON.stringify(message, null, 2)}`)
                     break;
                 case 'prompt':
                     console.info(`[Conversation Relay] >>>>>>: ${message.voicePrompt}`);
@@ -32,20 +33,27 @@ app.ws('/conversation-relay', async (ws) => {
                         "token": `You said: ${message.voicePrompt}`,
                         "last": true
                     }
-                    console.info(`[Conversation Relay] JSON <<<<<<: ${JSON.stringify(echoResponse, null, 4)}`);
+                    console.info(`[Conversation Relay] JSON <<<<<<: ${JSON.stringify(echoResponse, null, 2)}`);
                     // Send the response back to the WebSocket client
                     ws.send(JSON.stringify(echoResponse));
                     break;
                 case 'interrupt':
                     // Handle interrupt message
-                    console.info(`[Conversation Relay] Interrupt ...... : ${message.utteranceUntilInterrupt}`);
+                    console.info(`[Conversation Relay] Interrupt ...... : ${JSON.stringify(message, null, 2)}`);
                     break;
                 case 'dtmf':
                     // Handle DTMF digits. We are just logging them out for now.
                     console.debug(`[Conversation Relay] DTMF: ${message.digit}`);
                     echoResponse = {
                         "type": "text",
-                        "token": `Digit received is: ${message.digit}`,
+                        "token": `Digit received is: ${message.digit}. DTMF tones are also echod back as `,
+                        "last": true
+                    }
+                    // Send the response back to the WebSocket client
+                    ws.send(JSON.stringify(echoResponse));
+                    echoResponse = {
+                        "type": "sendDigits",
+                        "digits": `${message.digit}`,
                         "last": true
                     }
                     // Send the response back to the WebSocket client
@@ -59,7 +67,7 @@ app.ws('/conversation-relay', async (ws) => {
                         "token": `Initial Setup Message received`,
                         "last": true
                     }
-                    console.info(`[Conversation Relay] Setup <<<<<<: ${JSON.stringify(echoResponse, null, 4)}`);
+                    console.info(`[Conversation Relay] Setup <<<<<<: ${JSON.stringify(echoResponse, null, 2)}`);
                     // Send the response back to the WebSocket client
                     ws.send(JSON.stringify(echoResponse));
                     break;
