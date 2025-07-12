@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for convorelay-echo on 2025-07-12T11:26:21+10:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'convorelay-echo'
+primary_region = 'syd'
+
+[build]
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = 'suspend'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[env]
+  HOSTNAME = 'convorelay-echo.fly.dev'
+  
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
