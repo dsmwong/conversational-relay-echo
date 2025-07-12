@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const ExpressWs = require('express-ws');
+const twilio = require('twilio');
 
 const app = express();
 const PORT = 4000;
@@ -20,18 +21,35 @@ app.ws('/conversation-relay', async (ws) => {
         let echoResponse = "";
         try {
             const message = JSON.parse(data);
-            console.log(`[Conversation Relay] Message received. This server will echo what you say. You can also interrupt the interrupting a long echo message. DTMF tones are also echod back`);
-            console.log(`[Conversation Relay] JSON >>>>>>: ${JSON.stringify(message, null, 2)}`);
+            console.log(`[Conversation Relay] Message received. JSON >>>>>>: ${JSON.stringify(message, null, 2)}`);
             switch (message.type) {
                 case 'info':
                     console.debug(`[Conversation Relay] info: ${JSON.stringify(message, null, 2)}`)
                     break;
                 case 'prompt':
                     console.info(`[Conversation Relay] >>>>>>: ${message.voicePrompt}`);
-                    echoResponse = {
-                        "type": "text",
-                        "token": `You said: ${message.voicePrompt}`,
-                        "last": true
+                    if( message.voicePrompt.toLowerCase().includes('transfer to an agent') ) {
+                        // If the message contains a voice prompt, we will echo it back
+                        const handoffData = {
+                            "reason": "transfer",
+                            "code": "200",
+                            "data": {
+                                "callSid": message.callSid,
+                                "from": message.from,
+                                "to": message.to,
+                                "lastVoicePrompt": message.voicePrompt
+                            }
+                        }
+                        echoResponse = {
+                            "type": "end",
+                            "handoffData": JSON.stringify(handoffData)
+                        }
+                    } else {
+                        echoResponse = {
+                            "type": "text",
+                            "token": `You said: ${message.voicePrompt}`,
+                            "last": true
+                        }
                     }
                     console.info(`[Conversation Relay] JSON <<<<<<: ${JSON.stringify(echoResponse, null, 2)}`);
                     // Send the response back to the WebSocket client
@@ -46,7 +64,7 @@ app.ws('/conversation-relay', async (ws) => {
                     console.debug(`[Conversation Relay] DTMF: ${message.digit}`);
                     echoResponse = {
                         "type": "text",
-                        "token": `Digit received is: ${message.digit}. DTMF tones are also echod back as `,
+                        "token": `Digit received is: ${message.digit}. DTMF tones are also echoed back as `,
                         "last": true
                     }
                     // Send the response back to the WebSocket client
@@ -54,7 +72,6 @@ app.ws('/conversation-relay', async (ws) => {
                     echoResponse = {
                         "type": "sendDigits",
                         "digits": `${message.digit}`,
-                        "last": true
                     }
                     // Send the response back to the WebSocket client
                     ws.send(JSON.stringify(echoResponse));
@@ -91,10 +108,38 @@ app.ws('/conversation-relay', async (ws) => {
 });
 
 ////////// SERVER BASICS //////////
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Basic HTTP endpoint
 app.get('/', (req, res) => {
     res.send('WebSocket Server Running');
+});
+
+app.post('/twiml/incoming-call', (req, res) => {
+    // This endpoint can be used to handle incoming TwiML requests
+    res.type('text/xml');
+    const twiml = new twilio.twiml.VoiceResponse();
+    const connect = twiml.connect({
+        action: `https://${process.env.HOSTNAME}/twiml/wrap-up`
+    });
+    const parameters = req.body;
+    console.log(`[Conversation Relay] Incoming call parameters: ${JSON.stringify(req.body, null, 2)}`);
+    const conversationRelay = connect.conversationRelay({
+        url: `wss://${process.env.HOSTNAME}/conversation-relay`,
+        ...parameters,
+    })
+
+    res.send(twiml.toString());
+});
+
+app.post('/twiml/wrap-up', (req, res) => {
+    // This endpoint can be used to handle wrap-up after the conversation
+    res.type('text/xml');
+    console.log(`[Conversation Relay] Wrap-up parameters: ${JSON.stringify(req.body, null, 2)}`);
+    const twiml = new twilio.twiml.VoiceResponse();
+    twiml.say('Thank you for using the Conversation Relay service. Goodbye!');
+    res.send(twiml.toString());
 });
 
 // Start the server
