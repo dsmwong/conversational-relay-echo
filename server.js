@@ -16,6 +16,8 @@ ExpressWs(app);
 app.ws('/conversation-relay', async (ws) => {
     console.log('New Conversation Relay websocket established');
 
+    let parameters = {};
+
     // Handle incoming messages
     ws.on('message', async (data) => {
         let echoResponse = "";
@@ -28,6 +30,10 @@ app.ws('/conversation-relay', async (ws) => {
                     break;
                 case 'prompt':
                     console.info(`[Conversation Relay] >>>>>>: ${message.voicePrompt}`);
+
+
+                    console.log(`[Conversation Relay] Stored parameters: ${JSON.stringify(parameters, null, 2)}`);
+
                     if( message.voicePrompt.toLowerCase().includes('transfer to an agent') ) {
                         // If the message contains a voice prompt, we will echo it back
                         const handoffData = {
@@ -43,6 +49,13 @@ app.ws('/conversation-relay', async (ws) => {
                         echoResponse = {
                             "type": "end",
                             "handoffData": JSON.stringify(handoffData)
+                        }
+                    } 
+                    else if( message.voicePrompt.toLowerCase().includes('play preset text')) {
+                        echoResponse = {
+                            "type": "text",
+                            "token": parameters.presetText,
+                            "last": true
                         }
                     } else {
                         echoResponse = {
@@ -79,6 +92,10 @@ app.ws('/conversation-relay', async (ws) => {
                 case 'setup':
                     // Log out the Setup Message to and from phone numbers
                     console.log(`[Conversation Relay] Setup message. Call from: ${message.from} to: ${message.to} with call SID: ${message.callSid}`);
+
+                    parameters = message.customParameters;
+                    console.log(`[Conversation Relay] Setup set parameters: ${JSON.stringify(parameters, null, 2)}`);
+
                     echoResponse = {
                         "type": "text",
                         "token": `Initial Setup Message received`,
